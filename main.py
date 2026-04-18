@@ -16,7 +16,7 @@ def resource_path(filename):
         return os.path.join(sys._MEIPASS, filename)
     return os.path.join(os.path.abspath("."), filename)
 # === НАСТРОЙКИ ===
-REGION = (0, 75, 105, 70)
+REGION = (0, 175, 105, 70)
 CHECK_INTERVAL = 5  # 5 сек
 
 running = True
