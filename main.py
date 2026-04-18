@@ -26,7 +26,7 @@ next_check_in = CHECK_INTERVAL
 
 def is_colorful(pixel, threshold=15):
     r, g, b = map(int, pixel[:3])
-    return not (abs(r - g) < threshold and abs(r - b) < threshold and abs(g - b) < threshold)
+    return (max(r,g,b) - min(r,g,b)) > 20
 
 
 def play_sound():
