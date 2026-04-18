@@ -17,7 +17,7 @@ def resource_path(filename):
 
 
 # === НАСТРОЙКИ ===
-REGION = (0, 260, 170, 70)
+REGION = (0, 200, 200, 120)
 CHECK_INTERVAL = 5
 
 running = True
