@@ -2,50 +2,40 @@ import pyautogui
 import numpy as np
 import threading
 import time
-
+import winsound
 import tkinter as tk
 from datetime import datetime
-import platform
-import subprocess
 
 import sys
 import os
+
 
 def resource_path(filename):
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, filename)
     return os.path.join(os.path.abspath("."), filename)
+
+
 # === НАСТРОЙКИ ===
-REGION = (0, 175, 105, 70)
-CHECK_INTERVAL = 5  # 5 сек
+REGION = (0, 260, 170, 70)
+CHECK_INTERVAL = 5
 
 running = True
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
 
-
-def is_colorful(pixel, threshold=15):
-    r, g, b = map(int, pixel[:3])
-    return (max(r,g,b) - min(r,g,b)) > 20
+baseline = None
 
 
 def play_sound():
     global stop_sound_flag
 
     stop_sound_flag = False
-    if(platform.system() == 'Windows'):
-        import winsound
-        winsound.PlaySound(resource_path("alert.wav"), winsound.SND_FILENAME | winsound.SND_ASYNC)
-        while not stop_sound_flag:
-            time.sleep(0.05)
-    else:
-        sound_path = resource_path("alert.wav")
-        print(sound_path)
-        print(os.path.exists(sound_path))
-        process = subprocess.Popen(["afplay", sound_path])
-        while not stop_sound_flag and process.poll() is None:
-            time.sleep(0.05)
-        process.terminate()
+    winsound.PlaySound(
+        resource_path("alert.wav"),
+        winsound.SND_FILENAME | winsound.SND_ASYNC
+    )
+
     while not stop_sound_flag:
         time.sleep(0.05)
 
@@ -60,17 +50,29 @@ def stop_sound():
 
 
 def check_screen():
+    global baseline
+
     screenshot = pyautogui.screenshot(region=REGION)
     img = np.array(screenshot)
 
-    for row in img:
-        for pixel in row:
-            if is_colorful(pixel):
-                log("⚠️ Есть сообщение!")
-                threading.Thread(target=play_sound, daemon=True).start()
-                return
+    # первый запуск — сохраняем фон
+    if baseline is None:
+        baseline = img
+        log("📌 База сохранена")
+        return
 
-    log("✅ Нет сообщений")
+    # сравнение изображений
+    diff = np.abs(img.astype(np.int16) - baseline.astype(np.int16))
+    mean_diff = np.mean(diff)
+
+    if mean_diff > 10:
+        log("⚠️ Обнаружено изменение!")
+        threading.Thread(target=play_sound, daemon=True).start()
+    else:
+        log("✅ Без изменений")
+
+    # обновляем базу
+    baseline = img
 
 
 def update_timer():
@@ -99,14 +101,11 @@ def log(text):
 root = tk.Tk()
 root.title("Мониторинг SD")
 
-# ❗️ запрещаем разворот на весь экран
 root.resizable(False, False)
 root.attributes("-fullscreen", False)
-
-# уменьшаем окно
 root.geometry("360x200")
 
-timer_label = tk.Label(root, text="До проверки: 180 сек", font=("Arial", 12))
+timer_label = tk.Label(root, text="До проверки: 5 сек", font=("Arial", 12))
 timer_label.pack(pady=5)
 
 stop_btn = tk.Button(root, text="Стоп звук", command=stop_sound, width=20)
