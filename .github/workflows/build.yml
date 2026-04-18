@@ -16,7 +16,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pip install pyinstaller
 
-      - run: pyinstaller --onefile --add-data "alert.wav;." --hidden-import=pyautogui main.py
+      - run: pyinstaller --onefile --add-data "alert.wav;." --collect-all pyautogui main.py
 
       - uses: actions/upload-artifact@v4
         with:
