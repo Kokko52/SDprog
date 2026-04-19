@@ -20,7 +20,7 @@ def resource_path(filename):
 REGION = (0, 200, 200, 150)
 CHECK_INTERVAL = 5
 
-PIXEL_DIFF_THRESHOLD = 30_000  # чувствительность (главный параметр)
+PIXEL_DIFF_THRESHOLD = 1  # чувствительность (главный параметр)
 
 base_frame = None
 
@@ -73,7 +73,9 @@ def check_screen():
     diff = np.abs(frame.astype(np.int16) - base_frame.astype(np.int16))
 
     # суммарное изменение
-    changed_pixels = np.sum(diff > 30)
+    changed_pixels = np.sum((diff[:, :, 0] > 5) |
+    (diff[:, :, 0] > 5) |
+    (diff[:, :, 0] > 5))
 
 
     if changed_pixels > PIXEL_DIFF_THRESHOLD:
@@ -81,7 +83,7 @@ def check_screen():
         threading.Thread(target=play_sound, daemon=True).start()
     else:
         log("✅ Без изменений")
-
+    base_frame = frame
 
 def update_timer():
     global next_check_in
