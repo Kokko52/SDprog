@@ -22,7 +22,7 @@ CHECK_INTERVAL = 5
 
 PIXEL_DIFF_THRESHOLD = 30_000  # чувствительность (главный параметр)
 
-prev_frame = None
+base_frame = None
 
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
