@@ -63,10 +63,10 @@ def check_screen():
     # RGB каналы
     r = img[:, :, 0]
     g = img[:, :, 1]
-    b = img[:, :, 2]
+    b = img[:, :, 2] 
 
     # стабильный фильтр синего
-    mask = (b > 180) & ((b - r) > 60) & ((b - g) > 60)
+    mask = (b > r + 20) & (b > g + 20)
 
     pixels = np.sum(mask)
 
