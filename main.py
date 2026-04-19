@@ -79,11 +79,10 @@ def check_screen():
 
 
     if changed_pixels > PIXEL_DIFF_THRESHOLD:
-        log(f"⚠️ Изменение экрана: {changed_pixels}")
+        log(f"⚠️ Новое сообщение:")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log("✅ Без изменений")
-    base_frame = frame
+        log("✅ Чисто")
 
 def update_timer():
     global next_check_in
