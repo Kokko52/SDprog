@@ -52,7 +52,7 @@
  [],
  False,
  False,
- 1776565387,
+ 1776565701,
  [('run',
    '/Users/kokkureg/Work/SDprog/.venv/lib/python3.9/site-packages/PyInstaller/bootloader/Darwin-64bit/run',
    'EXECUTABLE')],
