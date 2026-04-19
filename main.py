@@ -8,7 +8,6 @@ from datetime import datetime
 
 import sys
 import os
-import cv2
 
 
 def resource_path(filename):
@@ -21,10 +20,7 @@ def resource_path(filename):
 REGION = (0, 200, 200, 150)
 CHECK_INTERVAL = 5
 
-# чувствительность (можно менять)
-SATURATION_THRESHOLD = 40
-VALUE_THRESHOLD = 40
-MIN_PIXELS = 5
+MIN_PIXELS = 5  # сколько пикселей синего нужно для срабатывания
 
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
@@ -59,26 +55,26 @@ def stop_sound():
     log("🔇 Звук остановлен")
 
 
+# === ГЛАВНАЯ ЛОГИКА (СИНИЙ ДЕТЕКТОР) ===
 def check_screen():
     screenshot = pyautogui.screenshot(region=REGION)
     img = np.array(screenshot)
 
-    # RGB → HSV
-    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    # RGB каналы
+    r = img[:, :, 0]
+    g = img[:, :, 1]
+    b = img[:, :, 2]
 
-    s = hsv[:, :, 1]  # насыщенность
-    v = hsv[:, :, 2]  # яркость
-
-    # ищем НЕ фон (любые цветные элементы)
-    mask = (s > SATURATION_THRESHOLD) & (v > VALUE_THRESHOLD)
+    # стабильный фильтр синего
+    mask = (b > 180) & ((b - r) > 60) & ((b - g) > 60)
 
     pixels = np.sum(mask)
 
     if pixels > MIN_PIXELS:
-        log(f"⚠️ Обнаружено изменение (не фон): {pixels} пикселей")
+        log(f"⚠️ СИНИЙ сигнал: {pixels} пикселей")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log("✅ Фон стабилен")
+        log("✅ Синий не найден")
 
 
 def update_timer():
