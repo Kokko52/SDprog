@@ -5,7 +5,6 @@ import time
 import winsound
 import tkinter as tk
 from datetime import datetime
-
 import sys
 import os
 
@@ -17,20 +16,27 @@ def resource_path(filename):
 
 
 # === НАСТРОЙКИ ===
-REGION = (0, 200, 200, 150)
+REGION = (0, 260, 170, 70)
 CHECK_INTERVAL = 5
+THRESHOLD = 10
 
 running = True
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
 
 baseline = None
+sound_playing = False
 
 
 def play_sound():
-    global stop_sound_flag
+    global stop_sound_flag, sound_playing
 
+    if sound_playing:
+        return
+
+    sound_playing = True
     stop_sound_flag = False
+
     winsound.PlaySound(
         resource_path("alert.wav"),
         winsound.SND_FILENAME | winsound.SND_ASYNC
@@ -40,6 +46,7 @@ def play_sound():
         time.sleep(0.05)
 
     winsound.PlaySound(None, winsound.SND_PURGE)
+    sound_playing = False
 
 
 def stop_sound():
@@ -55,24 +62,23 @@ def check_screen():
     screenshot = pyautogui.screenshot(region=REGION)
     img = np.array(screenshot)
 
-    # первый запуск — сохраняем фон
+    # 👉 сохраняем базу ТОЛЬКО один раз
     if baseline is None:
         baseline = img
         log("📌 База сохранена")
         return
 
-    # сравнение изображений
+    # сравнение
     diff = np.abs(img.astype(np.int16) - baseline.astype(np.int16))
     mean_diff = np.mean(diff)
 
-    if mean_diff > 10:
-        log("⚠️ Обнаружено изменение!")
+    if mean_diff > THRESHOLD:
+        log(f"⚠️ Изменение! diff={mean_diff:.2f}")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log("✅ Без изменений")
+        log(f"✅ Нет изменений diff={mean_diff:.2f}")
 
-    # обновляем базу
-    baseline = img
+    # ❌ ВАЖНО: НЕТ обновления baseline!
 
 
 def update_timer():
@@ -102,7 +108,6 @@ root = tk.Tk()
 root.title("Мониторинг SD")
 
 root.resizable(False, False)
-root.attributes("-fullscreen", False)
 root.geometry("360x200")
 
 timer_label = tk.Label(root, text="До проверки: 5 сек", font=("Arial", 12))
