@@ -17,10 +17,12 @@ def resource_path(filename):
 
 
 # === НАСТРОЙКИ ===
-REGION = (0, 160, 200, 110)
+REGION = (0, 200, 200, 150)
 CHECK_INTERVAL = 5
 
-MIN_PIXELS = 1  # сколько пикселей синего нужно для срабатывания
+PIXEL_DIFF_THRESHOLD = 30_000  # чувствительность (главный параметр)
+
+prev_frame = None
 
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
@@ -55,26 +57,31 @@ def stop_sound():
     log("🔇 Звук остановлен")
 
 
-# === ГЛАВНАЯ ЛОГИКА (СИНИЙ ДЕТЕКТОР) ===
+# === ГЛАВНАЯ ЛОГИКА (РАЗНИЦА КАДРОВ) ===
 def check_screen():
+    global prev_frame
+
     screenshot = pyautogui.screenshot(region=REGION)
-    img = np.array(screenshot)
+    frame = np.array(screenshot)
 
-    # RGB каналы
-    r = img[:, :, 0]
-    g = img[:, :, 1]
-    b = img[:, :, 2] 
+    if prev_frame is None:
+        prev_frame = frame
+        log("📸 Первый кадр сохранён")
+        return
 
-    # стабильный фильтр синего
-    mask = (b > 200) & (b > r + 70) & (b > g + 70)
+    # разница между кадрами
+    diff = np.abs(frame.astype(np.int16) - prev_frame.astype(np.int16))
 
-    pixels = np.sum(mask)
+    # суммарное изменение
+    changed_pixels = np.sum(diff > 30)
 
-    if pixels > MIN_PIXELS:
-        log(f"⚠️ СИНИЙ сигнал: {pixels} пикселей")
+    prev_frame = frame
+
+    if changed_pixels > PIXEL_DIFF_THRESHOLD:
+        log(f"⚠️ Изменение экрана: {changed_pixels}")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log("✅ Новое сообщение")
+        log("✅ Без изменений")
 
 
 def update_timer():
@@ -98,7 +105,7 @@ def log(text):
 
 # === GUI ===
 root = tk.Tk()
-root.title("Мониторинг SD")
+root.title("Мониторинг изменений")
 
 root.resizable(False, False)
 root.geometry("360x200")
@@ -112,7 +119,7 @@ stop_btn.pack(pady=5)
 log_box = tk.Text(root, height=10, width=42)
 log_box.pack(pady=5)
 
-log("▶️ Программа запущена")
+log("▶️ Запущен детектор изменений")
 
 update_timer()
 root.mainloop()
