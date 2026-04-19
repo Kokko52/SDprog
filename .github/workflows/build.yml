@@ -20,4 +20,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: program
-          path: dist/main.exe
+          path: dist/main/
