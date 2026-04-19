@@ -59,23 +59,22 @@ def stop_sound():
 
 # === ГЛАВНАЯ ЛОГИКА (РАЗНИЦА КАДРОВ) ===
 def check_screen():
-    global prev_frame
+    global base_frame
 
     screenshot = pyautogui.screenshot(region=REGION)
     frame = np.array(screenshot)
 
-    if prev_frame is None:
-        prev_frame = frame
+    if base_frame is None:
+        base_frame = frame
         log("📸 Первый кадр сохранён")
         return
 
     # разница между кадрами
-    diff = np.abs(frame.astype(np.int16) - prev_frame.astype(np.int16))
+    diff = np.abs(frame.astype(np.int16) - base_frame.astype(np.int16))
 
     # суммарное изменение
     changed_pixels = np.sum(diff > 30)
 
-    prev_frame = frame
 
     if changed_pixels > PIXEL_DIFF_THRESHOLD:
         log(f"⚠️ Изменение экрана: {changed_pixels}")
