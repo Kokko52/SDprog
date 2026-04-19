@@ -5,8 +5,10 @@ import time
 import winsound
 import tkinter as tk
 from datetime import datetime
+
 import sys
 import os
+import cv2
 
 
 def resource_path(filename):
@@ -16,15 +18,16 @@ def resource_path(filename):
 
 
 # === НАСТРОЙКИ ===
-REGION = (0, 260, 170, 70)
+REGION = (0, 200, 200, 150)
 CHECK_INTERVAL = 5
-THRESHOLD = 10
 
-running = True
+# чувствительность (можно менять)
+SATURATION_THRESHOLD = 40
+VALUE_THRESHOLD = 40
+MIN_PIXELS = 5
+
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
-
-baseline = None
 sound_playing = False
 
 
@@ -57,35 +60,29 @@ def stop_sound():
 
 
 def check_screen():
-    global baseline
-
     screenshot = pyautogui.screenshot(region=REGION)
     img = np.array(screenshot)
 
-    # 👉 сохраняем базу ТОЛЬКО один раз
-    if baseline is None:
-        baseline = img
-        log("📌 База сохранена")
-        return
+    # RGB → HSV
+    hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
 
-    # сравнение
-    diff = np.abs(img.astype(np.int16) - baseline.astype(np.int16))
-    mean_diff = np.mean(diff)
+    s = hsv[:, :, 1]  # насыщенность
+    v = hsv[:, :, 2]  # яркость
 
-    if mean_diff > THRESHOLD:
-        log(f"⚠️ Изменение! diff={mean_diff:.2f}")
+    # ищем НЕ фон (любые цветные элементы)
+    mask = (s > SATURATION_THRESHOLD) & (v > VALUE_THRESHOLD)
+
+    pixels = np.sum(mask)
+
+    if pixels > MIN_PIXELS:
+        log(f"⚠️ Обнаружено изменение (не фон): {pixels} пикселей")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log(f"✅ Нет изменений diff={mean_diff:.2f}")
-
-    # ❌ ВАЖНО: НЕТ обновления baseline!
+        log("✅ Фон стабилен")
 
 
 def update_timer():
-    global next_check_in, running
-
-    if not running:
-        return
+    global next_check_in
 
     if next_check_in <= 0:
         check_screen()
