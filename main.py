@@ -20,7 +20,7 @@ def resource_path(filename):
 REGION = (0, 160, 200, 110)
 CHECK_INTERVAL = 5
 
-MIN_PIXELS = 5  # сколько пикселей синего нужно для срабатывания
+MIN_PIXELS = 1  # сколько пикселей синего нужно для срабатывания
 
 stop_sound_flag = False
 next_check_in = CHECK_INTERVAL
@@ -74,7 +74,7 @@ def check_screen():
         log(f"⚠️ СИНИЙ сигнал: {pixels} пикселей")
         threading.Thread(target=play_sound, daemon=True).start()
     else:
-        log("✅ Синий не найден")
+        log("✅ Новое сообщение")
 
 
 def update_timer():
