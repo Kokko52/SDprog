@@ -66,7 +66,7 @@ def check_screen():
     b = img[:, :, 2] 
 
     # стабильный фильтр синего
-    mask = (b > r + 20) & (b > g + 20)
+    mask = (b > 200) & (b > r + 70) & (b > g + 70)
 
     pixels = np.sum(mask)
 
