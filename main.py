@@ -17,7 +17,7 @@ def resource_path(filename):
 
 
 # === НАСТРОЙКИ ===
-REGION = (0, 200, 200, 150)
+REGION = (0, 160, 200, 110)
 CHECK_INTERVAL = 5
 
 MIN_PIXELS = 5  # сколько пикселей синего нужно для срабатывания

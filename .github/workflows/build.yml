@@ -16,7 +16,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pip install pyinstaller 
 
-      - run: pip install opencv-python pyautogui numpy && pyinstaller --clean --noconfirm --onefile --collect-all cv2 main.py
+      - run: pip install pyautogui numpy && pyinstaller --clean --noconfirm --onefile --collect-all main.py
       - uses: actions/upload-artifact@v4
         with:
           name: program
